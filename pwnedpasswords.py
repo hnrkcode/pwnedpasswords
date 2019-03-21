@@ -11,6 +11,7 @@ class CheckPassword:
 
     def __init__(self):
         self.url = "https://api.pwnedpasswords.com/range/"
+        self.temp = "hashes.txt"
 
     def _hashify(self, password):
         """Returns an uppercase hash value of the password."""
@@ -18,19 +19,23 @@ class CheckPassword:
         hash.update(bytes(password, encoding="utf-8"))
         return hash.hexdigest().upper()
 
-    def _temp_save(self, hashes):
+    def _save_temp(self, hashes):
         """Temporary store the fetched hashes in a file."""
-        with open("hashes.txt", "w") as output:
+        with open(self.temp, "w") as output:
             output.write(hashes)
+
+    def _remove_temp(self):
+        """Delete the temporary file with fetched hashes."""
+        os.remove(self.temp)
 
     def _count(self, suffix):
         """Locally count the hashes that matches the passwords hash."""
         occur = 0
-        with open("hashes.txt") as f:
+        with open(self.temp) as f:
             for line in f.readlines():
                 if line[:35] == suffix:
                     occur = int(line[36:])
-        os.remove("hashes.txt")
+        self._remove_temp()
         return occur
 
     def check(self, password):
@@ -43,7 +48,7 @@ class CheckPassword:
             sys.exit("Connection error.")
         else:
             # Temporary store the fetched hashes in a file.
-            self._temp_save(fetched_hashes.text)
+            self._save_temp(fetched_hashes.text)
             # Locally count the hashes that matches the passwords hash.
             occur = self._count(suffix)
             return occur
