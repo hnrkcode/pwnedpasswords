@@ -1,17 +1,51 @@
 #!/usr/bin/env python3.6
 
 import os
+import csv
 import sys
 import hashlib
 import requests
 import argparse
+from collections import defaultdict
+
+
+class CheckCSV:
+
+    def __init__(self):
+        self.password = CheckPassword(False)
+
+    def _message(self, username, password, occur):
+        """Print the result to the screen."""
+        if occur > 0:
+            numerus = lambda num: "time." if num == 1 else "times!"
+            print(f'Password "{password}" for "{username}"',
+                  f'appeared {occur} {numerus(occur)}')
+
+    def check(self, file):
+        """Hash and check all passwords in a CSV-file."""
+        column = defaultdict(list)
+        try:
+            with open(file) as csvfile:
+                csvreader = csv.DictReader(csvfile)
+                for row in csvreader:
+                    for key, value in row.items():
+                        column[key].append(value)
+        except FileNotFoundError as e:
+            sys.exit(e)
+        else:
+            for login_details in zip(column['Username'], column['Password']):
+                username = login_details[0]
+                password = login_details[1]
+                occur = self.password.check(password)
+                self._message(username, password, occur)
 
 
 class CheckPassword:
 
-    def __init__(self):
+    def __init__(self, msg=True):
         self.url = "https://api.pwnedpasswords.com/range/"
         self.temp = "hashes.txt"
+        self.msg = msg
 
     def _hashify(self, password):
         """Returns an uppercase hash value of the password."""
@@ -38,34 +72,45 @@ class CheckPassword:
         self._remove_temp()
         return occur
 
+    def _message(self, password, occur):
+        """Print the result to the screen."""
+        if occur > 0:
+            numerus = lambda num: "time." if num == 1 else "times!"
+            print(f"\"{password}\" have been pwned {occur} {numerus(occur)}")
+        elif occur == 0:
+            print(f"No match for \"{password}\".")
+
     def check(self, password):
         """Hash password and check it against hashes of leaked passwords."""
         password_hash = self._hashify(password)
         prefix, suffix = password_hash[:5], password_hash[5:]
         try:
             fetched_hashes = requests.get(f"{self.url}{prefix}")
-        except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.ConnectionError:
             sys.exit("Connection error.")
         else:
             # Temporary store the fetched hashes in a file.
             self._save_temp(fetched_hashes.text)
             # Locally count the hashes that matches the passwords hash.
             occur = self._count(suffix)
+            if self.msg:
+                self._message(password, occur)
             return occur
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("password", help="Password to hash and check.")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-p', '--password', help='Check single password.')
+    group.add_argument('-f', '--csvfile', help='Check passwords in CSV-file.')
     args = parser.parse_args()
-    haveibeenpwned = CheckPassword()
-    occur = haveibeenpwned.check(args.password)
 
-    if occur > 0:
-        numerus = lambda num: "time." if num == 1 else "times!"
-        print(f"\"{args.password}\" have been pwned {occur} {numerus(occur)}")
-    elif occur == 0:
-        print(f"\"{args.password}\" doesn't appear to be pwned.")
+    if args.password:
+        haveibeenpwned = CheckPassword()
+        haveibeenpwned.check(args.password)
+    else:
+        check_csv = CheckCSV()
+        check_csv.check(args.csvfile)
 
 
 if __name__ == "__main__":
