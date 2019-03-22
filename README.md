@@ -4,7 +4,11 @@ Check if a password is safe to use without sending it online in plain text.
 
 ## Usage
 
-`python3 pwnedpasswords.py [password]`
+To check a single password:
+`python3 pwnedpasswords.py -p [password]` or `python3 pwnedpasswords.py --password [password]`
+
+To check all passwords in a CSV-file:
+`python3 pwnedpasswords.py -f [filepath]` or `python3 pwnedpasswords.py --csvfile [filepath]`
 
 ## How it works
 
