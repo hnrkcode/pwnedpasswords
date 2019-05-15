@@ -44,7 +44,7 @@ class CheckPassword:
 
     def __init__(self, msg=True):
         self.url = "https://api.pwnedpasswords.com/range/"
-        self.temp = "hashes.txt"
+        self.temp = os.path.join(os.path.dirname(__file__), 'hashes.txt')
         self.msg = msg
 
     def _hashify(self, password):
