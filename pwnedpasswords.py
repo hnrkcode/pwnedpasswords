@@ -20,22 +20,22 @@ def _hashify(password):
 
 def _get_matching_hash_count(suffix, data):
     """Locally count the hashes that matches the passwords hash."""
-    occur = 0
+    password_leak_count = 0
     lines = data.text.split("\n")
 
     for line in lines:
         if line[:35] == suffix:
-            occur = int(line[36:])
+            password_leak_count = int(line[36:])
 
-    return occur
+    return password_leak_count
 
 
-def _message(password, occur):
+def _message(password, password_leak_count):
     """Print the result to the screen."""
-    if occur > 0:
+    if password_leak_count:
         numerus = lambda num: "time." if num == 1 else "times!"
-        print(f'"{password}" have been pwned {occur} {numerus(occur)}')
-    elif occur == 0:
+        print(f'"{password}" have been pwned {password_leak_count} {numerus(password_leak_count)}')
+    else:
         print(f'No match for "{password}".')
 
 
@@ -49,12 +49,12 @@ def check_password(password, msg=False):
     except requests.exceptions.ConnectionError:
         sys.exit("Connection error.")
 
-    occur = _get_matching_hash_count(suffix, fetched_hashes)
+    password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
 
     if msg:
-        _message(password, occur)
+        _message(password, password_leak_count)
 
-    return occur
+    return password_leak_count
 
 
 def check_csv(file):
@@ -67,18 +67,18 @@ def check_csv(file):
                     column[key].append(value)
     except FileNotFoundError as e:
         sys.exit(e)
-    else:
-        for login_details in zip(column["username"], column["password"]):
-            username = login_details[0]
-            password = login_details[1]
-            occur = check_password(password)
 
-            if occur > 0:
-                numerus = lambda num: "time." if num == 1 else "times!"
-                print(
-                    f'Password "{password}" for "{username}"',
-                    f"appeared {occur} {numerus(occur)}",
-                )
+    for login_details in zip(column["username"], column["password"]):
+        username = login_details[0]
+        password = login_details[1]
+        password_leak_count = check_password(password)
+
+        if password_leak_count:
+            numerus = lambda num: "time." if num == 1 else "times!"
+            print(
+                f'Password "{password}" for "{username}"',
+                f"appeared {password_leak_count} {numerus(password_leak_count)}",
+            )
 
 
 def main():
