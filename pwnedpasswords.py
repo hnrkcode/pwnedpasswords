@@ -1,16 +1,14 @@
-#!/usr/bin/env python3.6
-
-import os
-import csv
-import sys
-import hashlib
-import requests
 import argparse
+import csv
+import hashlib
+import os
+import sys
 from collections import defaultdict
+
+import requests
 
 
 class CheckCSV:
-
     def __init__(self):
         self.password = CheckPassword(False)
 
@@ -18,8 +16,10 @@ class CheckCSV:
         """Print the result to the screen."""
         if occur > 0:
             numerus = lambda num: "time." if num == 1 else "times!"
-            print(f'Password "{password}" for "{username}"',
-                  f'appeared {occur} {numerus(occur)}')
+            print(
+                f'Password "{password}" for "{username}"',
+                f"appeared {occur} {numerus(occur)}",
+            )
 
     def check(self, file):
         """Hash and check all passwords in a CSV-file."""
@@ -40,11 +40,11 @@ class CheckCSV:
                 self._message(username, password, occur)
 
 
-class CheckPassword:
 
+class CheckPassword:
     def __init__(self, msg=True):
         self.url = "https://api.pwnedpasswords.com/range/"
-        self.temp = os.path.join(os.path.dirname(__file__), 'hashes.txt')
+        self.temp = os.path.join(os.path.dirname(__file__), "hashes.txt")
         self.msg = msg
 
     def _hashify(self, password):
@@ -76,9 +76,9 @@ class CheckPassword:
         """Print the result to the screen."""
         if occur > 0:
             numerus = lambda num: "time." if num == 1 else "times!"
-            print(f"\"{password}\" have been pwned {occur} {numerus(occur)}")
+            print(f'"{password}" have been pwned {occur} {numerus(occur)}')
         elif occur == 0:
-            print(f"No match for \"{password}\".")
+            print(f'No match for "{password}".')
 
     def check(self, password):
         """Hash password and check it against hashes of leaked passwords."""
@@ -101,8 +101,8 @@ class CheckPassword:
 def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-p', '--password', help='Check single password.')
-    group.add_argument('-f', '--csvfile', help='Check passwords in CSV-file.')
+    group.add_argument("-p", "--password", help="Check single password.")
+    group.add_argument("-f", "--csvfile", help="Check passwords in CSV-file.")
     args = parser.parse_args()
 
     if args.password:
