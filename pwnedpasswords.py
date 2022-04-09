@@ -104,7 +104,8 @@ def main():
 
     if args.password:
         check_password(args.password, msg=True)
-    else:
+
+    if args.csvfile:
         check_csv(args.csvfile)
 
 
