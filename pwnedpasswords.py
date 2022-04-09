@@ -1,7 +1,6 @@
 import argparse
 import csv
 import hashlib
-import os
 import sys
 from collections import defaultdict
 
@@ -9,7 +8,6 @@ import requests
 
 
 API_URL = "https://api.pwnedpasswords.com/range/"
-TEMP_FILE = os.path.join(os.path.dirname(__file__), "hashes.txt")
 
 
 def _hashify(password):
@@ -20,25 +18,14 @@ def _hashify(password):
     return hash.hexdigest().upper()
 
 
-def _save_temp(hashes):
-    """Temporary store the fetched hashes in a file."""
-    with open(TEMP_FILE, "w") as output:
-        output.write(hashes)
-
-
-def _remove_temp():
-    """Delete the temporary file with fetched hashes."""
-    os.remove(TEMP_FILE)
-
-
-def _count(suffix):
+def _get_matching_hash_count(suffix, data):
     """Locally count the hashes that matches the passwords hash."""
     occur = 0
-    with open(TEMP_FILE) as f:
-        for line in f.readlines():
-            if line[:35] == suffix:
-                occur = int(line[36:])
-    _remove_temp()
+    lines = data.text.split("\n")
+
+    for line in lines:
+        if line[:35] == suffix:
+            occur = int(line[36:])
 
     return occur
 
@@ -56,15 +43,14 @@ def check_password(password, msg=False):
     """Hash password and check it against hashes of leaked passwords."""
     password_hash = _hashify(password)
     prefix, suffix = password_hash[:5], password_hash[5:]
+
     try:
         fetched_hashes = requests.get(f"{API_URL}{prefix}")
     except requests.exceptions.ConnectionError:
         sys.exit("Connection error.")
 
-    # Temporary store the fetched hashes in a file.
-    _save_temp(fetched_hashes.text)
-    # Locally count the hashes that matches the passwords hash.
-    occur = _count(suffix)
+    occur = _get_matching_hash_count(suffix, fetched_hashes)
+
     if msg:
         _message(password, occur)
 
