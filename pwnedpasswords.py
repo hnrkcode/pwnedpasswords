@@ -33,7 +33,7 @@ class CheckCSV:
         except FileNotFoundError as e:
             sys.exit(e)
         else:
-            for login_details in zip(column['Username'], column['Password']):
+            for login_details in zip(column['username'], column['password']):
                 username = login_details[0]
                 password = login_details[1]
                 occur = self.password.check(password)
