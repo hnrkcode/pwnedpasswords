@@ -52,7 +52,7 @@ def _message(password, occur):
         print(f'No match for "{password}".')
 
 
-def check_password(password, msg=True):
+def check_password(password, msg=False):
     """Hash password and check it against hashes of leaked passwords."""
     password_hash = _hashify(password)
     prefix, suffix = password_hash[:5], password_hash[5:]
@@ -103,7 +103,7 @@ def main():
     args = parser.parse_args()
 
     if args.password:
-        check_password(args.password)
+        check_password(args.password, msg=True)
     else:
         check_csv(args.csvfile)
 
