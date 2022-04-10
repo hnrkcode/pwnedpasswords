@@ -34,7 +34,9 @@ def _message(password, password_leak_count):
     """Print the result to the screen."""
     if password_leak_count:
         numerus = lambda num: "time." if num == 1 else "times!"
-        print(f'"{password}" have been pwned {password_leak_count} {numerus(password_leak_count)}')
+        print(
+            f'"{password}" have been pwned {password_leak_count} {numerus(password_leak_count)}'
+        )
     else:
         print(f'No match for "{password}".')
 
@@ -59,6 +61,7 @@ def check_password(password, msg=False):
 
 def check_csv(file):
     column = defaultdict(list)
+
     try:
         with open(file) as csvfile:
             csvreader = csv.DictReader(csvfile)
@@ -68,17 +71,9 @@ def check_csv(file):
     except FileNotFoundError as e:
         sys.exit(e)
 
-    for login_details in zip(column["username"], column["password"]):
-        username = login_details[0]
-        password = login_details[1]
+    for password in column["password"]:
         password_leak_count = check_password(password)
-
-        if password_leak_count:
-            numerus = lambda num: "time." if num == 1 else "times!"
-            print(
-                f'Password "{password}" for "{username}"',
-                f"appeared {password_leak_count} {numerus(password_leak_count)}",
-            )
+        _message(password, password_leak_count)
 
 
 def main():
