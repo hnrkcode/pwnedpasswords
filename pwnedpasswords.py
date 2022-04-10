@@ -30,17 +30,6 @@ def _get_matching_hash_count(suffix, data):
     return password_leak_count
 
 
-def _message(password, password_leak_count):
-    """Print the result to the screen."""
-    if password_leak_count:
-        numerus = lambda num: "time." if num == 1 else "times!"
-        print(
-            f'"{password}" have been pwned {password_leak_count} {numerus(password_leak_count)}'
-        )
-    else:
-        print(f'No match for "{password}".')
-
-
 async def check_password(work_queue):
     async with aiohttp.ClientSession() as session:
         while not work_queue.empty():
@@ -52,7 +41,7 @@ async def check_password(work_queue):
             async with session.get(f"{API_URL}{prefix}") as response:
                 fetched_hashes = await response.text()
                 password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
-                _message(password, password_leak_count)
+                print(f"LEAKS FOUND: {password_leak_count}, {password}")
 
 
 async def main():
