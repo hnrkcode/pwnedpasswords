@@ -30,7 +30,7 @@ def _get_matching_hash_count(suffix, data):
     return password_leak_count
 
 
-async def fetch_hashes(session, url):
+async def _fetch_hashes(session, url):
     async with session.get(url) as response:
         return await response.text()
 
@@ -42,7 +42,7 @@ async def check_password(work_queue):
             password_hash = _hashify(password)
             prefix, suffix = password_hash[:5], password_hash[5:]
             url = f"{API_URL}{prefix}"
-            fetched_hashes = await fetch_hashes(session, url)
+            fetched_hashes = await _fetch_hashes(session, url)
             password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
             print(f"LEAKS FOUND: {password_leak_count}, {password}")
 
