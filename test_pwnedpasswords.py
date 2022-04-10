@@ -1,4 +1,8 @@
-from pwnedpasswords import _hashify, _get_matching_hash_count
+from pwnedpasswords import API_URL, _get_matching_hash_count, _hashify
+
+
+def test_api_url():
+    assert API_URL == "https://api.pwnedpasswords.com/range/"
 
 
 def test_hashify():
