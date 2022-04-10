@@ -30,18 +30,18 @@ def _get_matching_hash_count(suffix, data):
     return password_leak_count
 
 
-def _message(name, password, password_leak_count):
+def _message(password, password_leak_count):
     """Print the result to the screen."""
     if password_leak_count:
         numerus = lambda num: "time." if num == 1 else "times!"
         print(
-            f'"{name.upper()}: {password}" have been pwned {password_leak_count} {numerus(password_leak_count)}'
+            f'"{password}" have been pwned {password_leak_count} {numerus(password_leak_count)}'
         )
     else:
-        print(f'{name.upper()}: No match for "{password}".')
+        print(f'No match for "{password}".')
 
 
-async def check_password(name, work_queue):
+async def check_password(work_queue):
     async with aiohttp.ClientSession() as session:
         while not work_queue.empty():
             password = await work_queue.get()
@@ -52,7 +52,7 @@ async def check_password(name, work_queue):
             async with session.get(f"{API_URL}{prefix}") as response:
                 fetched_hashes = await response.text()
                 password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
-                _message(name, password, password_leak_count)
+                _message(password, password_leak_count)
 
 
 async def main():
@@ -88,7 +88,7 @@ async def main():
         await work_queue.put(password)
 
     await asyncio.gather(
-        *[asyncio.create_task(check_password(str(i), work_queue)) for i in range(10)],
+        *[asyncio.create_task(check_password(work_queue)) for i in range(10)],
     )
 
 
