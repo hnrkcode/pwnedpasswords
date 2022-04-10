@@ -79,9 +79,10 @@ async def main():
     for password in passwords:
         await work_queue.put(password)
 
-    await asyncio.gather(
-        *[asyncio.create_task(check_password(work_queue)) for i in range(10)],
-    )
+    limit = 10
+    tasks = [asyncio.create_task(check_password(work_queue)) for _ in range(limit)]
+
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
