@@ -30,18 +30,21 @@ def _get_matching_hash_count(suffix, data):
     return password_leak_count
 
 
+async def fetch_hashes(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+
 async def check_password(work_queue):
     async with aiohttp.ClientSession() as session:
         while not work_queue.empty():
             password = await work_queue.get()
-
             password_hash = _hashify(password)
             prefix, suffix = password_hash[:5], password_hash[5:]
-
-            async with session.get(f"{API_URL}{prefix}") as response:
-                fetched_hashes = await response.text()
-                password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
-                print(f"LEAKS FOUND: {password_leak_count}, {password}")
+            url = f"{API_URL}{prefix}"
+            fetched_hashes = await fetch_hashes(session, url)
+            password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
+            print(f"LEAKS FOUND: {password_leak_count}, {password}")
 
 
 async def main():
