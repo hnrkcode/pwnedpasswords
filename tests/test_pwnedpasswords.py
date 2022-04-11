@@ -1,4 +1,8 @@
-from pwnedpasswords import API_URL, _get_matching_hash_count, _hashify
+import sys
+
+sys.path.insert(0, "../")
+
+from pwnedpasswords.pwnedpasswords import API_URL, _get_matching_hash_count, _hashify
 
 
 def test_api_url():
@@ -10,7 +14,7 @@ def test_hashify():
 
 
 def test_get_matching_hash_count():
-    with open("test_hashes.txt") as f:
+    with open("./tests/test_hashes.txt") as f:
         data = f.read()
         password_hash = _hashify("password")
         _, suffix = password_hash[:5], password_hash[5:]

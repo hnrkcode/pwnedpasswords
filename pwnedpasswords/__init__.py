@@ -55,7 +55,7 @@ async def check_password(work_queue: asyncio.queues.Queue) -> None:
             print(f"LEAKS FOUND: {password_leak_count}, {password}")
 
 
-async def main() -> None:
+async def run() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-p", "--password", help="Check single password.")
@@ -97,5 +97,9 @@ async def main() -> None:
         await asyncio.gather(*tasks)
 
 
+def main() -> None:
+    asyncio.run(run())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
