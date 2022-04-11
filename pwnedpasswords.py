@@ -4,56 +4,58 @@ import csv
 import hashlib
 import sys
 from collections import defaultdict
+from typing import Any
 
 import aiohttp
 
 API_URL = "https://api.pwnedpasswords.com/range/"
 
 
-def _hashify(password):
+def _hashify(password: str) -> str:
     """Returns an uppercase hash value of the password."""
     hash = hashlib.sha1()
     hash.update(bytes(password, encoding="utf-8"))
+    password_hash = hash.hexdigest().upper()
 
-    return hash.hexdigest().upper()
+    return password_hash
 
 
-def _get_matching_hash_count(suffix, data):
-    """Locally count the hashes that matches the passwords hash."""
+def _get_matching_hash_count(suffix: str, data: str) -> int:
+    """Get how many hashes that matched the passwords hash."""
     password_leak_count = 0
-    lines = data.split("\n")
 
-    for line in lines:
+    for line in data.split("\n"):
         if line[:35] == suffix:
             password_leak_count = int(line[36:])
 
     return password_leak_count
 
 
-async def _fetch_hashes(session, url):
+async def _fetch_hashes(session: Any, url: str) -> Any:
     async with session.get(url) as response:
         return await response.text()
 
 
-async def check_password(work_queue):
+async def check_password(work_queue: asyncio.queues.Queue) -> None:
     async with aiohttp.ClientSession() as session:
         while not work_queue.empty():
             password = await work_queue.get()
             password_hash = _hashify(password)
-            prefix, suffix = password_hash[:5], password_hash[5:]
+            prefix = password_hash[:5]
+            suffix = password_hash[5:]
             url = f"{API_URL}{prefix}"
             fetched_hashes = await _fetch_hashes(session, url)
             password_leak_count = _get_matching_hash_count(suffix, fetched_hashes)
+
             print(f"LEAKS FOUND: {password_leak_count}, {password}")
 
 
-async def main():
+async def main() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-p", "--password", help="Check single password.")
     group.add_argument("-f", "--csvfile", help="Check passwords in CSV-file.")
     args = parser.parse_args()
-
     passwords = []
 
     if args.password:
@@ -74,7 +76,7 @@ async def main():
         for password in column["password"]:
             passwords.append(password)
 
-    work_queue = asyncio.Queue()
+    work_queue: asyncio.queues.Queue = asyncio.Queue()
 
     for password in passwords:
         await work_queue.put(password)
