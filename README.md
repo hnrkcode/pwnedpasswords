@@ -7,17 +7,17 @@ Check if a password is safe to use without sending it online in plain text.
 To check a single password:
 
 ```
-python3 pwnedpasswords.py -p [password]
+python run.py -p [password]
 
-python3 pwnedpasswords.py --password [password]
+python run.py --password [password]
 ```
 
 To check all passwords in a CSV-file:
 
 ```
-python3 pwnedpasswords.py -f [filepath]
+python run.py -f [filepath]
 
-python3 pwnedpasswords.py --csvfile [filepath]
+python run.py --csvfile [filepath]
 ```
 
 ## How it works
