@@ -4,7 +4,7 @@ import csv
 import hashlib
 import sys
 from collections import defaultdict
-from typing import Any
+from typing import Any, Generator
 
 import aiohttp
 
@@ -29,6 +29,11 @@ def _get_matching_hash_count(suffix: str, data: str) -> int:
             password_leak_count = int(line[36:])
 
     return password_leak_count
+
+
+def _password_batch(passwords: list, size: int) -> Generator:
+    for i in range(0, len(passwords), size):
+        yield passwords[i : i + size]
 
 
 async def _fetch_hashes(session: Any, url: str) -> Any:
@@ -76,15 +81,20 @@ async def main() -> None:
         for password in column["password"]:
             passwords.append(password)
 
-    work_queue: asyncio.queues.Queue = asyncio.Queue()
+    batch_size = 50
+    batches = _password_batch(passwords, batch_size)
 
-    for password in passwords:
-        await work_queue.put(password)
+    # Split up passwords into smaller batches to avoid rate limits.
+    for batch in batches:
+        work_queue: asyncio.queues.Queue = asyncio.Queue()
 
-    limit = 10
-    tasks = [asyncio.create_task(check_password(work_queue)) for _ in range(limit)]
+        for password in batch:
+            await work_queue.put(password)
 
-    await asyncio.gather(*tasks)
+        limit = 10
+        tasks = [asyncio.create_task(check_password(work_queue)) for _ in range(limit)]
+
+        await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
